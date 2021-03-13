@@ -62,6 +62,7 @@ public class UserPaymentDetails extends AppCompatActivity {
                 bundle.putSerializable("order",orderModel);
                 gointent.putExtras(bundle);
                 startActivity(gointent);
+                finish();
                 }
 
         });

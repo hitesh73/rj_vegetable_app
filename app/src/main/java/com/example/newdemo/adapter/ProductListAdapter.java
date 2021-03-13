@@ -202,13 +202,46 @@ public class ProductListAdapter extends FirestoreRecyclerAdapter<ProductItem, Pr
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable final QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                        if (!isFavorite) {
-                            if (value != null) {
-                                if (!value.isEmpty()) {
+//                        if (!isFavorite) {
+//                            if (value != null ) {
+//                                if (!value.isEmpty()) {
+//                                    if (value.getDocuments().get(0).exists()) {
+//                                        Toast.makeText(context, "Already added", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                } else {
+//                                    FirebaseFirestore.getInstance().collection("USERS")
+//                                            .document("rahul@gmail.com")
+//                                            .collection("FAVORITE").add(model)
+//                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+//                                                @Override
+//                                                public void onSuccess(DocumentReference documentReference) {
+//                                                    Map<String, Object> map = new HashMap<>();
+//                                                    map.put("favProductId", documentReference.getId());
+//                                                    documentReference.update(map).addOnSuccessListener(new OnSuccessListener<Void>() {
+//                                                        @Override
+//                                                        public void onSuccess(Void aVoid) {
+//                                                            Toast.makeText(context, "Added to favorite", Toast.LENGTH_SHORT).show();
+//                                                            isFavorite = true;
+//                                                        }
+//                                                    });
+//                                                }
+//                                            }).addOnFailureListener(new OnFailureListener() {
+//                                        @Override
+//                                        public void onFailure(@NonNull Exception e) {
+//                                            Toast.makeText(context, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                                        }
+//                                    });
+//                                }
+//                            }
+//                        }
+
+
+                            if (!isFavorite && value != null) {
+//                                if (!value.isEmpty()) {
                                     if (value.getDocuments().get(0).exists()) {
                                         Toast.makeText(context, "Already added", Toast.LENGTH_SHORT).show();
                                     }
-                                } else {
+//                                } else {
                                     FirebaseFirestore.getInstance().collection("USERS")
                                             .document("rahul@gmail.com")
                                             .collection("FAVORITE").add(model)
@@ -232,8 +265,9 @@ public class ProductListAdapter extends FirestoreRecyclerAdapter<ProductItem, Pr
                                         }
                                     });
                                 }
-                            }
-                        }
+//                            }
+
+
                         if (error != null) {
                             Toast.makeText(context, "" + error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
