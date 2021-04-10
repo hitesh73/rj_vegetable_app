@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.newdemo.R;
 import com.example.newdemo.activity.OrderHistoryDetails;
+import com.example.newdemo.activity.PlaceOrder;
+import com.example.newdemo.activity.UserPaymentDetails;
 import com.example.newdemo.model.CartModel;
 import com.example.newdemo.model.OrderModel;
 import com.example.newdemo.model.ProductItem;
@@ -38,7 +40,7 @@ import java.util.Map;
 public class OrderProductList extends FirestoreRecyclerAdapter<OrderModel, OrderProductList.OrderViewHolder> {
     Context context;
     private SharedPreferences preferences;
-    String date;
+    String gtotal;
 
 
 
@@ -63,11 +65,9 @@ public class OrderProductList extends FirestoreRecyclerAdapter<OrderModel, Order
             public void onClick(View v) {
                 Intent intent = new Intent(context, OrderHistoryDetails.class);
                 Bundle b = new Bundle();
-                b.putSerializable("orderModel", orderModel);
-//                intent.putExtra("name",preferences.getString("address",""));
+                b.putSerializable("order", orderModel);
                 intent.putExtras(b);
                 context.startActivity(intent);
-
             }
         });
 //        holder.tvname.setText("Name : "+cartModel.getProductItem().getProductName());
@@ -122,7 +122,7 @@ public class OrderProductList extends FirestoreRecyclerAdapter<OrderModel, Order
 //        TextView tvprice, tvdes, tvstatus, tvqnty, tvname,tvtotal;
         TextView tv_orders, tv_order_ID, tv_order_status, tv_datetime, tv_order_datetime;
         CardView cardView;
-
+        String grand_total;
 
         public OrderViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -136,7 +136,6 @@ public class OrderProductList extends FirestoreRecyclerAdapter<OrderModel, Order
 //            tv_orders = itemView.findViewById(R.id.orders);
             tv_order_ID = itemView.findViewById(R.id.orderID);
             tv_order_status = itemView.findViewById(R.id.orderstatus);
-//            tv_datetime = itemView.findViewById(R.id.date_time);
             tv_order_datetime = itemView.findViewById(R.id.order_datetime);
             cardView = itemView.findViewById(R.id.order_card);
         }

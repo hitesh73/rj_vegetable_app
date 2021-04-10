@@ -39,8 +39,8 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
         holder.tv_productName.setText(cartModels.get(position).getProductItem().getProductName());
         holder.tv_productPrice.setText("₹."+cartModels.get(position).getProductItem().getProductPrice());
-        holder.tv_productKgs.setText(cartModels.get(position).getProductItem().getProductWeight());
-        holder.tv_productQty.setText(cartModels.get(position).getProductQty());
+        holder.tv_productKgs.setText("kgs :"+cartModels.get(position).getProductItem().getProductWeight());
+        holder.tv_productQty.setText("Qnty :"+cartModels.get(position).getProductQty());
     }
 
     @Override

@@ -38,7 +38,7 @@ public class LoginScreen extends AppCompatActivity {
     TextView forgotpassword, clicktext, helptext;
     Button loginbutton, facebookbutton, googlebutton;
     private FirebaseAuth mAuth;
-
+    Users user;
     SharedPreferences preferences;
     SharedPreferences.Editor editor;
 
@@ -147,6 +147,9 @@ public class LoginScreen extends AppCompatActivity {
 
                                                                 editor = preferences.edit();
                                                                 editor.putString("email", snapshot.get("email").toString());
+                                                                editor.putString("mobile",snapshot.get("mobile").toString());
+                                                                editor.putString("user_name",snapshot.get("user_name").toString());
+                                                                editor.putString("user_address",snapshot.get("user_address").toString());
                                                                 editor.apply();
 
                                                                 Intent intent = new Intent(LoginScreen.this, HomeActivity.class);

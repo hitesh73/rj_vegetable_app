@@ -1,5 +1,6 @@
 package com.example.newdemo.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -34,7 +35,7 @@ import java.util.Map;
 public class PaymentActivity extends AppCompatActivity {
     String key = "UGtwZvo3";
     String txnid = "1";
-    String amount ;
+    String amount;
     String productinfo = "RJ Veg";
     String firstname = "Hitesh";
     String email = "hiteshdkhatri2001@gmail.com";
@@ -45,6 +46,7 @@ public class PaymentActivity extends AppCompatActivity {
     OrderModel orderModel;
     CartModel cartModel;
     SharedPreferences preferences;
+    Context mcontext;
     private static final String TAG = "PaymentActivity";
 
     @Override
@@ -133,10 +135,11 @@ public class PaymentActivity extends AppCompatActivity {
                 if (transactionResponse.getTransactionStatus().equals(TransactionResponse.TransactionStatus.SUCCESSFUL)) {
                     orderModel.setOrderTotal(amount);
                     orderModel.setTimestamp(null);
-                    FirebaseFirestore.getInstance().collection("USERS").document(userEmail).collection("ORDERS")
+                    orderModel.setPaymentMethod("Online Transaction");
+                    FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com").collection("ORDERS")
                             .add(orderModel).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                         @Override
-                        public void onComplete(@NonNull Task<DocumentReference> task) {
+                        public void onComplete(@NonNull final Task<DocumentReference> task) {
                             if (task.isSuccessful()) {
                                 task.addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                                     @Override
@@ -146,9 +149,10 @@ public class PaymentActivity extends AppCompatActivity {
                                         documentReference.update(orderMap).addOnSuccessListener(new OnSuccessListener<Void>() {
                                             @Override
                                             public void onSuccess(Void aVoid) {
-                                                clearProducts();
                                                 orderMap.clear();
-                                                Toast.makeText(PaymentActivity.this, "", Toast.LENGTH_SHORT).show();
+                                                clearProducts();
+                                                Intent intn = new Intent(PaymentActivity.this, HomeActivity.class);
+                                                startActivity(intn);
                                             }
                                         });
                                     }
@@ -184,11 +188,10 @@ public class PaymentActivity extends AppCompatActivity {
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                        if (value!=null && !value.isEmpty()){
+                        if (value != null && !value.isEmpty()) {
                             value.getDocuments().get(0).getReference().delete();
                         }
                     }
                 });
-
     }
 }

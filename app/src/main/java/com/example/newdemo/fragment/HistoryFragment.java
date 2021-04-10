@@ -1,5 +1,6 @@
 package com.example.newdemo.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,15 +43,14 @@ public class HistoryFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view=inflater.inflate(R.layout.fragment_history,container,false);
         TextView textView=view.findViewById(R.id.tv);
-//        textView.setText("history fragment");
-//        FrameLayout frameLayout=view.findViewById(R.id.frame3);
-//        //frameLayout.setBackgroundColor(getResources().getColor(R.color.green));
 
         rv_history = view.findViewById(R.id.rv_history);
         orderModels = new ArrayList<>();
         cartModels = new ArrayList<>();
         AddToHistory();
         return view;
+
+
     }
 
     private void AddToHistory() {
@@ -59,7 +59,7 @@ public class HistoryFragment extends Fragment {
 
         FirestoreRecyclerOptions firestoreRecyclerOptions= new FirestoreRecyclerOptions.Builder<OrderModel>().setQuery(query, OrderModel.class).build();
 
-        historyViewHolder= new OrderProductList(getActivity(),firestoreRecyclerOptions);
+        historyViewHolder= new OrderProductList(getContext(),firestoreRecyclerOptions);
         rv_history.setAdapter(historyViewHolder);
         rv_history.setLayoutManager(new GridLayoutManager(getActivity(),1));
     }

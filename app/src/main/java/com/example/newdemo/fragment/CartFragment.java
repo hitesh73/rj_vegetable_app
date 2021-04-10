@@ -69,32 +69,37 @@ public class CartFragment extends Fragment {
         preferences = getActivity().getSharedPreferences("user", 0);
         editor = preferences.edit();
 
-        placeOrder.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                OrderModel orderModel=new OrderModel();
-                orderModel.setOrderStatus("Pending");
-                orderModel.setCartModels(cartList);
-                orderModel.setOrderId("");
-                Date date = new Date();
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTime(date);
-                orderModel.setTimestamp(date);
+        if (cartTotal==null) {
+            placeOrder.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    OrderModel orderModel = new OrderModel();
+                    orderModel.setOrderStatus("Pending");
+                    orderModel.setCartModels(cartList);
+                    orderModel.setOrderTotal(cartTotal);
+                    orderModel.setOrderId("");
+                    Date date = new Date();
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(date);
+                    orderModel.setTimestamp(date);
+
 
 //                Intent intent = new Intent(getActivity(), PaymentActivity.class);
-                Intent intent = new Intent(getActivity(), PlaceOrder.class);
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("order",orderModel);
-                intent.putExtras(bundle);
-                intent.putExtra("total",cartTotal);
-                intent.putExtra("user_address",UserAddress);
-                intent.putExtra("user_name",UserName);
-                intent.putExtra("user_mobile",UserMobile);
+                    Intent intent = new Intent(getActivity(), PlaceOrder.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("order", orderModel);
+                    intent.putExtras(bundle);
+                    intent.putExtra("total", orderModel.getOrderTotal());
+                    intent.putExtra("user_address", UserAddress);
+                    intent.putExtra("user_name", UserName);
+                    intent.putExtra("user_mobile", UserMobile);
 //                intent.putExtra("order",orderModel);
-                startActivity(intent);
-            }
-        });
-
+                    startActivity(intent);
+                }
+            });
+        }else {
+            Toast.makeText(getActivity(), "cart is empty", Toast.LENGTH_SHORT).show();
+        }
 
         FirebaseFirestore.getInstance().collection("USERS")
                 .whereEqualTo("email", preferences.getString("email", ""))

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.newdemo.R;
+import com.example.newdemo.fragment.HistoryFragment;
 import com.example.newdemo.model.CartModel;
 import com.example.newdemo.model.OrderModel;
 import com.example.newdemo.model.ProductItem;
@@ -41,6 +42,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.auth.User;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -60,8 +62,10 @@ public class PlaceOrder extends AppCompatActivity {
     RadioGroup radioGroup_paymnt;
     List<CartModel> cartModels;
     Button paymentbtn;
+    Users user;
     private FirebaseAuth mAuth;
     String UserAddress, UserName, UserMobile;
+
     Date DATE;
     Users users;
 
@@ -84,8 +88,8 @@ public class PlaceOrder extends AppCompatActivity {
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy hh:mm a");
         final String date = format.format(orderModel.getTimestamp());
         addDate.setText("Date : " + date);
-
-        addtotal.setText("₹." + getIntent().getStringExtra("total"));
+        addtotal.setText("₹." + orderModel.getOrderTotal());
+//        addtotal.setText("₹." + getIntent().getStringExtra("total"));
 
         UserAddress = intent.getStringExtra("user_address");
 //        UserAddress= preferences.getString("address","");
@@ -96,112 +100,121 @@ public class PlaceOrder extends AppCompatActivity {
         user_address.setText(UserAddress);
         user_name.setText(UserName);
         user_mobile_no.setText(UserMobile);
-
         paymentbtn.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 String name = user_name.getText().toString();
                 String mobile = user_mobile_no.getText().toString().trim();
+
 
                 if (mobile.isEmpty() || mobile.length() < 10) {
                     user_mobile_no.setError("enter valid number please");
                     user_mobile_no.requestFocus();
                     return;
                 }
+//                if (!.isSelected()){
+//                    Toast.makeText(PlaceOrder.this, "please select payment method", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
                 if (name.isEmpty()) {
                     user_name.setError("name is required");
                     user_name.requestFocus();
                     return;
-                }else {
-                    if (radioGroup_paymnt.getCheckedRadioButtonId()==R.id.rb_COD){
+                } else {
+                    if (radioGroup_paymnt.getCheckedRadioButtonId() == R.id.rb_COD) {
+                        orderModel.setPaymentMethod("cash on delivery");
                         FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com")
-                                .collection("CART").addSnapshotListener(new EventListener<QuerySnapshot>() {
+                                .collection("ORDERS")
+                                .add(orderModel).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                             @Override
-                            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                                if (value != null && !value.isEmpty()){
-                                    cartModels = value.toObjects(CartModel.class);
-                                    orderModel.setCartModels(cartModels);
-                                    orderModel.setPaymentMethod("cash on delivery");
-                                    FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com")
-                                            .collection("ORDERS").add(orderModel)
-                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                            public void onComplete(@NonNull Task<DocumentReference> task) {
+                                if (task.isSuccessful()) {
+                                    task.addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                        @Override
+                                        public void onSuccess(DocumentReference documentReference) {
+                                            final Map<String, Object> orderMap = new HashMap<>();
+                                            orderMap.put("orderId", documentReference.getId());
+                                            documentReference.update(orderMap).addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
-                                                public void onSuccess(DocumentReference documentReference) {
-                                                    Map<String, Object> map = new HashMap<>();
-                                                    map.put("orderId", documentReference.getId());
-                                                    documentReference.update(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                        @Override
-                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                            if (task.isSuccessful()){
-                                                                Intent user_pay = new Intent(PlaceOrder.this,UserPaymentDetails.class);
-                                                                Bundle bundle = new Bundle();
-                                                                bundle.putSerializable("order",orderModel);
-                                                                user_pay.putExtras(bundle);
-                                                                user_pay.putExtra("total_price",addtotal.getText().toString());
-                                                                user_pay.putExtra("u_name",user_name.getText().toString());
-                                                                user_pay.putExtra("u_mobile",user_mobile_no.getText().toString());
-                                                                user_pay.putExtra("u_address",user_address.getText().toString());
-                                                                startActivity(user_pay);
-                                                            }else
-                                                                Toast.makeText(PlaceOrder.this, ""+task.getException(), Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    });
+                                                public void onSuccess(Void aVoid) {
+                                                    orderMap.clear();
+                                                    clearProducts();
+                                                    Intent intn = new Intent(PlaceOrder.this, HomeActivity.class);
+                                                    startActivity(intn);
                                                 }
                                             });
-                                }
-                                if (error!=null){
-                                    Toast.makeText(PlaceOrder.this, ""+error.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(PlaceOrder.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                    Toast.makeText(PlaceOrder.this, "Order Successful", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(PlaceOrder.this, "" + task.getException(), Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
                     }
-                    if (radioGroup_paymnt.getCheckedRadioButtonId()==R.id.rb_ONLINE){
-                        FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com")
-                                .collection("CART").addSnapshotListener(new EventListener<QuerySnapshot>() {
-                            @Override
-                            public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                                if (value != null && !value.isEmpty()){
-                                    cartModels = value.toObjects(CartModel.class);
-                                    orderModel.setCartModels(cartModels);
-                                    orderModel.setPaymentMethod("Online Transaction");
-                                    FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com")
-                                            .collection("ORDERS").add(orderModel)
-                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                @Override
-                                                public void onSuccess(DocumentReference documentReference) {
-                                                    Map<String, Object> map = new HashMap<>();
-                                                    map.put("orderId", documentReference.getId());
-                                                    documentReference.update(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                        @Override
-                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                            if (task.isSuccessful()){
-                                                                Intent user_pay = new Intent(PlaceOrder.this,UserPaymentDetails.class);
-                                                                Bundle bundle = new Bundle();
-                                                                bundle.putSerializable("order",orderModel);
-                                                                user_pay.putExtras(bundle);
-                                                                user_pay.putExtra("total",addtotal.getText().toString());
-
-                                                                user_pay.putExtra("u_name",user_name.getText().toString());
-                                                                user_pay.putExtra("u_mobile",user_mobile_no.getText().toString());
-//                                                                user_pay.putExtra("u_address",user_address.getText().toString());
-                                                                startActivity(user_pay);
-                                                            }else
-                                                                Toast.makeText(PlaceOrder.this, ""+task.getException(), Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                }
-                                if (error!=null){
-                                    Toast.makeText(PlaceOrder.this, ""+error.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+                    if (radioGroup_paymnt.getCheckedRadioButtonId() == R.id.rb_ONLINE) {
+//                        FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com")
+//                                .collection("CART").addSnapshotListener(new EventListener<QuerySnapshot>() {
+//                            @Override
+//                            public void onEvent(@Nullable final QuerySnapshot value, @Nullable final FirebaseFirestoreException error) {
+//                                if (value != null && !value.isEmpty()) {
+//                                    cartModels = value.toObjects(CartModel.class);
+//                                    orderModel.setCartModels(cartModels);
+//                                    orderModel.setPaymentMethod("Online Transaction");
+//                                    FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com")
+//                                            .collection("ORDERS").add(orderModel)
+//                                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+//                                                @Override
+//                                                public void onSuccess(DocumentReference documentReference) {
+//                                                    if (!value.isEmpty()) {
+//                                                        Intent user_pay = new Intent(PlaceOrder.this, PaymentActivity.class);
+//                                                        Bundle bundle = new Bundle();
+//                                                        bundle.putSerializable("order", orderModel);
+//                                                        user_pay.putExtras(bundle);
+//                                                        user_pay.putExtra("total", orderModel.getOrderTotal());
+//                                                        user_pay.putExtra("u_address", user_address.getText().toString());
+//                                                        user_pay.putExtra("u_name", user_name.getText().toString());
+//                                                        user_pay.putExtra("u_mobile", user_mobile_no.getText().toString());
+//                                                        startActivity(user_pay);
+//                                                    } else
+//                                                        Toast.makeText(PlaceOrder.this, "" + error.getMessage(), Toast.LENGTH_SHORT).show();
+//                                                }
+//                                            });
+//                                }
+//                                if (error != null) {
+//                                    Toast.makeText(PlaceOrder.this, "" + error.getMessage(), Toast.LENGTH_SHORT).show();
+//                                }
+//                            }
+//                        });
+                        Intent user_pay = new Intent(PlaceOrder.this, PaymentActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("order", orderModel);
+                        user_pay.putExtras(bundle);
+                        user_pay.putExtra("total", orderModel.getOrderTotal());
+                        user_pay.putExtra("u_address", user_address.getText().toString());
+                        user_pay.putExtra("u_name", user_name.getText().toString());
+                        user_pay.putExtra("u_mobile", user_mobile_no.getText().toString());
+                        startActivity(user_pay);
                     }
                 }
-
-
             }
         });
+    }
+
+    private void clearProducts() {
+        FirebaseFirestore.getInstance().collection("USERS").document("rahul@gmail.com").collection("CART")
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if (value != null && !value.isEmpty()) {
+                            value.getDocuments().get(0).getReference().delete();
+                        }
+                    }
+                });
     }
 }
